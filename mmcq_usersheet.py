@@ -138,6 +138,9 @@ ENCODING = 'utf-8'
 
 
 class UsrCard(object):
+    """
+    用户名片类
+    """
 
     def __init__(self, ip, host_name, usr_name,):
         self._ip = ip
