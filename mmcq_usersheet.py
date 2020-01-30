@@ -132,9 +132,8 @@
 import socket
 import threading
 import time
-
-BUFSIZE = 1024
-ENCODING = 'utf-8'
+from mmcq_settings import *
+from mmcq_socket import *
 
 
 class UsrCard(object):
@@ -180,25 +179,28 @@ class Reader(threading.Thread):
         if self.data:
             string_msg = bytes.decode(self.data, ENCODING)
 
-            print(string_msg, f"from {self.friend_ip}")
             # 1. 将收到的信息进行分类，如果发送的是一个端口信息，则将该端口信息保存在名片中，
             if string_msg.startswith("usr_card#") and self.main_frame.usr_sheet.my_card.ip() != self.friend_ip:
-                print(f"名片：{string_msg}")
                 self.save_card(string_msg)
                 # 当收到一个用户的卡片后我们要将我们的卡片回发给对方；
+                # 同时将名片添加到名片夹中；
                 self.send_my_card(string_msg.split("#")[1])
+            # 2. 如果收到的信息是一个消息，则提醒用户并显示在响应的对话框中，并返回给发送方一个收到的消息；
             elif string_msg.startswith("message#") and self.main_frame.usr_sheet.my_card.ip() != self.friend_ip:
-                print("message#shoudaome")
                 self.main_frame.message_list.append(string_msg)
                 for chat_frame_window in self.main_frame.pop_chat_window_list:
-                    print(chat_frame_window)
                     if chat_frame_window.friend_ip == self.friend_ip:
-                        print("messshow")
                         chat_frame_window.ShowMsg(string_msg)
+            # 3. 当一个用户下线时向局域网内广播下线消息，其他用户将其从名片卡中删除；
+            elif string_msg.startswith("exit#") and self.main_frame.usr_sheet.my_card.ip() != self.friend_ip:
+                self.delete_card(string_msg)
+                pass
 
-
-            # 同时将名片添加到名片夹中；
-            # 2. 如果收到的信息是一个消息，则提醒用户并显示在响应的对话框中，并返回给发送方一个收到的消息；
+    def delete_card(self, data):
+        ip = data.split("#")[1]
+        for usr_card in self.main_frame.usr_sheet.usr_sheet():
+            if usr_card.ip() == ip:
+                self.main_frame.usr_sheet.delete(usr_card)
 
     def save_card(self, string):
         usr_info = string.split("#")[1:]
@@ -207,10 +209,7 @@ class Reader(threading.Thread):
 
     def send_my_card(self, friend_ip):
         my_card = self.main_frame.usr_sheet.my_card.card_info()
-        udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        udp_socket.sendto(my_card.encode(ENCODING), (friend_ip, 44444))
-        udp_socket.close()
-
+        UDP_send_data(friend_ip, my_card)
 
 
 class Listener(threading.Thread):
@@ -222,32 +221,21 @@ class Listener(threading.Thread):
         threading.Thread.__init__(self)
         self.port = port
         self.main_frame = main_frame
-        # self.usr_sheet = main_frame.usr_sheet.usr_sheet()
-        # self.message_list = main_frame.message_list
-        # self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # 监听TCP端口代码
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind(("", port))
-        # self.sock.listen(0)   # 监听TCP端口
         # 将自己的地址广播到局域网中
         self.broadcast()
 
     def run(self):
-        print("listener started")
         while True:
-            # client, cltadd = self.sock.accept()
             data, addr = self.sock.recvfrom(1024)
             Reader(data, addr, self.main_frame).start()
-            print(f"read data:{data} from {addr}")
+            # print(f"read data:{data} from {addr}")
 
     def broadcast(self):
-        bcast_addr = ("255.255.255.255", 44444)
         data = self.main_frame.usr_sheet.my_card.card_info()
-        udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST,True)
-        udp_socket.sendto(data.encode("utf-8"), bcast_addr)
-        print("broadcast: ok")
-        udp_socket.close()
+        LAN_broadcasting(data)
 
 
 class UserSheet(object):
@@ -256,15 +244,10 @@ class UserSheet(object):
         self.ip = self.get_ip()
         self.usr_name = self.get_usr_name()
         self.host_name = self.get_host_name()
-        # self.group_name = self.get_group_name()
         self.usersheet = []
         self.message_list = []
         self.my_card = UsrCard(self.ip, self.host_name, self.usr_name)
-        # self.add(self.my_card)
         self.start = 0
-        # self.listener = Listener()
-        # self.listener.start()
-        # self.broadcast()
 
     def usr_sheet(self):
         return self.usersheet
@@ -272,6 +255,10 @@ class UserSheet(object):
     def add(self, usr_card):
         # 当收到用户的名片时将其添加到用户表单中
         self.usersheet.append(usr_card)
+
+    def delete(self, usr_card):
+        # 当用户收到朋友退出的消息时将朋友的名片从名片夹中删除
+        self.usersheet.remove(usr_card)
 
     def remove(self, usr_card):
         # 当用户下线时从用户表单中移除用户名片
@@ -288,22 +275,14 @@ class UserSheet(object):
         else:
             raise StopIteration
 
-
-
-    def listen_port(self):
-        # udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        # udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        # udp_socket.bind(("", 44444))
-        # udp_socket.listen(0)
-        pass
-
-
     def get_ip(self):
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(('8.8.8.8', 80))
             ip = s.getsockname()[0]
             print(ip)
+        except OSError as oe:
+            print("请连接局域网！")
         finally:
             s.close()
 

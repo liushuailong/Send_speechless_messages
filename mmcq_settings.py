@@ -14,3 +14,11 @@ CHAT_WIN_WIDTH = 500
 
 # 计算机主机名称
 HOST_NAME = '刘帅龙主机'
+
+# usersheet
+
+# 读取数据大小
+BUFSIZE = 1024
+
+# 数据编码
+ENCODING = 'utf-8'

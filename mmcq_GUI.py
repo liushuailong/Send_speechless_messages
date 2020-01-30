@@ -50,18 +50,13 @@ class UsrSheetShow(wx.Window):
         print("计时器开启计时")
 
         for usr_card in self.usr_sheet.usersheet:
-            # for usr_card in ["usr_card#192.168.1.107#DESKTOP-4423EFF#DESKTOP-4423EFF", "usr_card#192.168.1.107#DESKTOP-4423EFF#DESKTOP-4423EFF"]:
-            # print(f"usrspanel {i}")
             # 如何做到将用户列表里面的信息以垂直列表的形式添加到其中。
-            # sig_panel = wx.Panel(self)
             head_sizer = wx.GridBagSizer(hgap=5, vgap=5)
             usr_photo = wx.Image("./images/profile_photo_v0.1.png", wx.BITMAP_TYPE_ANY)
             self.sbm_profile = wx.StaticBitmap(self, -1, wx.BitmapFromImage(usr_photo))
             self.sbm_profile.Bind(wx.EVT_LEFT_DCLICK, self.pop_chat_window)
             usr_name = usr_card.usr_name()
-            # usr_name = usr_card.split("#")[2]
             host_name = usr_card.host_name()
-            # host_name = usr_card.split("#")[3]
             print(usr_name)
             self.usr_txt = GenStaticText(self, -1, label="用户名：")
             self.host_txt = GenStaticText(self, -1, label="主机名：")
@@ -75,7 +70,6 @@ class UsrSheetShow(wx.Window):
             head_sizer.Add(self.host_name, pos=(1, 2), flag=wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL)
 
             head_sizer.AddGrowableCol(2)
-            # head_sizer.AddGrowableRow(1)
             self.main_box.Add(head_sizer, flag=wx.EXPAND | wx.ALL, border=5)
 
             self.SetSizerAndFit(self.main_box)
@@ -154,7 +148,6 @@ class UsrsPanel(wx.Panel):
         head_sizer.Add(self.ip, pos=(1, 2), flag=wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL)
 
         head_sizer.AddGrowableCol(2)
-        # head_sizer.AddGrowableRow(1)
         self.main_box.Add(head_sizer, flag=wx.EXPAND | wx.ALL, border=5)
 
         self.SetSizerAndFit(self.main_box)
@@ -170,7 +163,6 @@ class UsrsPanel(wx.Panel):
             self.SetSizerAndFit(self.main_box)
 
     def Add_usr_card(self, event):
-        # print("il")
         for usr_card in self.usr_sheet.usersheet:
             if usr_card.ip() not in self.ip_list:
                 self.usr_card(usr_card)
@@ -397,9 +389,6 @@ class ChatFrame(wx.Frame):
         self.SendMsg(send_msg)
         show_msg = send_msg
         self.ShowMsg(show_msg)
-        # show_msg = f"我：\n{msg}\n\n"
-        # self.msg_enter_box.Clear()
-        # self.chat_record_show.write(show_msg)
 
     def SendMsg(self, send_msg):
         print(send_msg.split("#")[2])
@@ -420,6 +409,7 @@ class ChatFrame(wx.Frame):
 
 
 
+
 class MmcqApp(wx.App):
     """
     程序界面APP
@@ -436,6 +426,16 @@ class MmcqApp(wx.App):
         # 在前期设计UI时使用，后面使用触发方法调用
         # self.chatfrm.Show()
         return True
+
+    def OnExit(self):
+        """
+          wx.App子类的OnExit()方法在最后一个窗口被关闭且在wxPython的内在清理过程之前被调用，
+          所以，可以在OnExit()方法中清理任何创建的非wxPython资源。
+          如果调用了wx.Exit()关闭wxPython程序，OnExit()方法仍会被调用。
+        """
+
+        pass
+
 
 
 def main():
