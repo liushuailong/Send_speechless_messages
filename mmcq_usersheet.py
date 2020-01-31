@@ -220,6 +220,7 @@ class Listener(threading.Thread):
     def __init__(self, main_frame, port=44444):
         threading.Thread.__init__(self)
         self.port = port
+        self.close_flag = True
         self.main_frame = main_frame
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -228,14 +229,16 @@ class Listener(threading.Thread):
         self.broadcast()
 
     def run(self):
-        while True:
-            data, addr = self.sock.recvfrom(1024)
+        while self.close_flag:
+            data, addr = self.sock.recvfrom(BUFSIZE)
             Reader(data, addr, self.main_frame).start()
-            # print(f"read data:{data} from {addr}")
 
     def broadcast(self):
         data = self.main_frame.usr_sheet.my_card.card_info()
         LAN_broadcasting(data)
+
+    def close(self):
+        self.close_flag = False
 
 
 class UserSheet(object):

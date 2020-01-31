@@ -102,17 +102,17 @@ class UsrsPanel(wx.Panel):
 
     问题3：如何点击一片区域（用户显示区域）来弹出用户聊天对话框；
     问题4：用户信息和聊天信息如何正确传递到聊天对话框中；
+        使用ip绑定到固定的窗口,通过消息里面的ip地址来找到对应的窗口,在将消息内容呈现在对应的窗口里。
     问题5：使用Sizer布局是如何，设置个控件个控件之间占据的距离；
         使用Sizer.Add()中的 proportion 比例选项来设置。
+    问题6：如何将退出的用户从用户面板中删除。
+        如何删除已有的控件；
     """
     def __init__(self, parent, main_frame):
         super(self.__class__, self).__init__(parent)
-        # text = wx.TextCtrl(self, style=wx.TE_MULTILINE, size=(250, 150))
-        # self.SetSizer((280, 300))
         self.usr_sheet = main_frame.usr_sheet
         self.main_frame = main_frame
         self.ip_list = []
-        # UsrSheetShow(self.usr_sheet, self)
         self.show_usr_sheet()
         # 设定定时器(不起作用）
         self.timer = wx.Timer(self)
@@ -151,12 +151,13 @@ class UsrsPanel(wx.Panel):
     def show_usr_sheet(self):
         """
         启动显示用户列表；
-        :return:
+        :return: None
         """
         self.main_box = wx.BoxSizer(wx.VERTICAL)
         for usr_card in self.usr_sheet.usersheet:
             self.usr_card(usr_card)
             self.SetSizerAndFit(self.main_box)
+        return None
 
     def Add_usr_card(self, event):
         for usr_card in self.usr_sheet.usersheet:
@@ -164,14 +165,9 @@ class UsrsPanel(wx.Panel):
                 self.usr_card(usr_card)
 
     def pop_chat_window(self, event):
-        print(event.GetId())
         my_ip = self.usr_sheet.get_ip()
         friend_ip = wx.FindWindowById(event.GetId(), self).GetName()
-        print(friend_ip)
-        # friend_ip = "123"
-        print(f"get label:{friend_ip}")
-        print("pop window")
-        chat_frame = ChatFrame(my_ip,friend_ip, None, title="chat_frame")
+        chat_frame = ChatFrame(my_ip, friend_ip, None, title="chat_frame")
         self.main_frame.pop_chat_window_list.append(chat_frame)
         chat_frame.Show()
 
@@ -197,7 +193,9 @@ class MainFrame(wx.Frame):
         self.ip = self.usr_sheet.get_ip()
         self.message_list = []
         self.pop_chat_window_list = []
-        Listener(self).start()
+        self.listener = Listener(self)
+        self.listener.setDaemon(True)
+        self.listener.start()
         # Set the window's size
         self.SetMaxSize((MAIN_WIN_WIDTH, MAIN_WIN_HIGH))
         self.SetMinSize((MAIN_WIN_WIDTH, MAIN_WIN_HIGH))
@@ -402,9 +400,6 @@ class ChatFrame(wx.Frame):
         self.chat_record_show.write(show_msg_text)
 
 
-
-
-
 class MmcqApp(wx.App):
     """
     程序界面APP
@@ -425,16 +420,13 @@ class MmcqApp(wx.App):
           所以，可以在OnExit()方法中清理任何创建的非wxPython资源。
           如果调用了wx.Exit()关闭wxPython程序，OnExit()方法仍会被调用。
         """
+        self.mainfrm.listener
 
         pass
 
 
-
 def main():
     app = MmcqApp()
-    # 调用聊天窗口的代码
-    # app.mainfrm.pop_chat_window()
-    # app.chatfrm.Show()
     app.MainLoop()
 
 
