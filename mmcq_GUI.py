@@ -121,24 +121,20 @@ class UsrsPanel(wx.Panel):
 
     def usr_card(self, usr_card):
         ip = usr_card.ip()
-        # print("ok")
         head_sizer = wx.GridBagSizer(hgap=5, vgap=5)
         usr_photo = wx.Image("./images/profile_photo_v0.1.png", wx.BITMAP_TYPE_ANY)
         self.sbm_profile = wx.StaticBitmap(self, -1, wx.BitmapFromImage(usr_photo), name=ip)
         self.sbm_profile.Bind(wx.EVT_LEFT_DCLICK, self.pop_chat_window)
         usr_name = usr_card.usr_name()
         self.ip_list.append(ip)
-        # usr_name = usr_card.split("#")[2]
         host_name = usr_card.host_name()
-        # host_name = usr_card.split("#")[3]
-        print(usr_name)
         self.usr_text = GenStaticText(self, -1, label="用户名：", name=ip)
         self.usr_text.Bind(wx.EVT_LEFT_DCLICK, self.pop_chat_window)
-        self.host_text = GenStaticText(self, -1, label="IP地址：",name=ip)
+        self.host_text = GenStaticText(self, -1, label="IP地址：", name=ip)
         self.host_text.Bind(wx.EVT_LEFT_DCLICK, self.pop_chat_window)
-        self.ip = GenStaticText(self, -1, label=ip,name=ip)
+        self.ip = GenStaticText(self, -1, label=ip, name=ip)
         self.ip.Bind(wx.EVT_LEFT_DCLICK, self.pop_chat_window)
-        self.usr_name = GenStaticText(self, -1, label=usr_name,name=ip)
+        self.usr_name = GenStaticText(self, -1, label=usr_name, name=ip)
         self.usr_name.Bind(wx.EVT_LEFT_DCLICK, self.pop_chat_window)
         # 个人信息状态布局
         head_sizer.Add(self.sbm_profile, pos=(0, 0), span=(2, 1), flag=wx.EXPAND)
@@ -166,7 +162,6 @@ class UsrsPanel(wx.Panel):
         for usr_card in self.usr_sheet.usersheet:
             if usr_card.ip() not in self.ip_list:
                 self.usr_card(usr_card)
-
 
     def pop_chat_window(self, event):
         print(event.GetId())
