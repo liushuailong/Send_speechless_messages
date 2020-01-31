@@ -152,6 +152,9 @@ class UsrCard(object):
     def card_info(self):
         return f"usr_card#{self._ip}#{self._host_name}#{self._usr_name}"
 
+    def exit_info(self):
+        return f"exit#{self._ip}#{self._host_name}#{self._usr_name}"
+
     def ip(self):
         return self._ip
 
@@ -170,7 +173,6 @@ class Reader(threading.Thread):
         threading.Thread.__init__(self)
         self.data = data
         self.friend_ip = addr[0]
-        print(self.friend_ip)
         # self.usr_sheet = usr_sheet
         self.main_frame = main_frame
 
@@ -194,7 +196,6 @@ class Reader(threading.Thread):
             # 3. 当一个用户下线时向局域网内广播下线消息，其他用户将其从名片卡中删除；
             elif string_msg.startswith("exit#") and self.main_frame.usr_sheet.my_card.ip() != self.friend_ip:
                 self.delete_card(string_msg)
-                pass
 
     def delete_card(self, data):
         ip = data.split("#")[1]
@@ -215,7 +216,6 @@ class Reader(threading.Thread):
 class Listener(threading.Thread):
     """
     监听UDP端口44444的数据流。
-
     """
     def __init__(self, main_frame, port=44444):
         threading.Thread.__init__(self)

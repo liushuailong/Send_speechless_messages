@@ -14,6 +14,7 @@ from wx.lib.stattext import GenStaticText
 # 导入本项目模块
 from mmcq_settings import *
 from mmcq_usersheet import *
+from mmcq_socket import *
 
 CWD = os.getcwd()
 
@@ -420,9 +421,11 @@ class MmcqApp(wx.App):
           所以，可以在OnExit()方法中清理任何创建的非wxPython资源。
           如果调用了wx.Exit()关闭wxPython程序，OnExit()方法仍会被调用。
         """
-        self.mainfrm.listener
-
-        pass
+        my_card = self.mainfrm.usr_sheet.my_card
+        data = my_card.exit_info()
+        print(data)
+        LAN_broadcasting(data=data)
+        return True
 
 
 def main():
