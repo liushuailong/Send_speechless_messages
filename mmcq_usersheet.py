@@ -276,17 +276,7 @@ class UserSheet(object):
             raise StopIteration
 
     def get_ip(self):
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(('8.8.8.8', 80))
-            ip = s.getsockname()[0]
-            print(ip)
-        except OSError as oe:
-            print("请连接局域网！")
-        finally:
-            s.close()
-
-        return ip
+        return get_ip()
 
     def get_usr_name(self):
         return socket.gethostname()

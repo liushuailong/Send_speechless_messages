@@ -421,10 +421,7 @@ class MmcqApp(wx.App):
 
     def OnInit(self):
         self.mainfrm = MainFrame(None, title=WIN_TITLE)
-        # self.chatfrm = ChatFrame(None)
         self.mainfrm.Show()
-        # 在前期设计UI时使用，后面使用触发方法调用
-        # self.chatfrm.Show()
         return True
 
     def OnExit(self):
