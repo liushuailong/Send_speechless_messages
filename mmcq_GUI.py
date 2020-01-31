@@ -195,6 +195,8 @@ class MainFrame(wx.Frame):
         self.message_list = []
         self.pop_chat_window_list = []
         self.listener = Listener(self)
+        # self.listener它做为程序主线程的守护线程, 当主线程退出时, self.listener线程也会退出,
+        # 由self.listener启动的其它子线程会同时退出, 不管是否执行完任务.
         self.listener.setDaemon(True)
         self.listener.start()
         # Set the window's size
